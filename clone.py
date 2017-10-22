@@ -1,6 +1,7 @@
 import csv
 import cv2
 import numpy as np
+import os
 
 EPOCHS = 6
 STEERING_CORRECTION = 0.25
@@ -8,7 +9,7 @@ BATCH_SIZE = 64
 TOP_CROP = 70
 BOT_CROP = 25
 
-def get_lines(folder_path = '../data', skip=True):
+def get_lines(folder_path = '../data', skip=False):
 	lines = []
 	with open(folder_path + '/driving_log.csv') as csvfile:
 		reader = csv.reader(csvfile)
@@ -17,31 +18,41 @@ def get_lines(folder_path = '../data', skip=True):
 		for line in reader:
 			lines.append(line)
 	return lines
-	
-def get_samples(lines, folder_path = '../data/IMG/', correction = STEERING_CORRECTION):
+
+def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, one = False):
+	data_folders = []
+	if one:
+		data_folders.append(folder_path)
+	else:
+		folders = [x[0] for x in os.walk(folder_path)]
+		data_folders = list(filter(lambda folder: os.path.isfile(folder + '/driving_log.csv'), folders))
+
 	images_paths = []
 	measurements = []
-	for line in lines:
-		steering_center = float(line[3])
-		
-		# create adjusted steering measurements for the side camera images
-		steering_left = steering_center + correction
-		steering_right = steering_center - correction
+	for data_folder in data_folders:
+		lines = get_lines(folder_path = data_folder)
+		for line in lines:
+			steering_center = float(line[3])
 
-		# read in images from center, left and right cameras
-		img_center = folder_path + line[0].split('/')[-1] #cv2.imread(path + sample[0].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[0])))
-		img_left = folder_path + line[1].split('/')[-1] #cv2.imread(path + sample[1].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[1])))
-		img_right = folder_path + line[2].split('/')[-1] #cv2.imread(path + sample[2].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[2])))
+			# create adjusted steering measurements for the side camera images
+			steering_left = steering_center + correction
+			steering_right = steering_center - correction
 
-		# add images paths and angles to data set
-		images_paths += [img_center, img_left, img_right]
-		measurements += [steering_center, steering_left, steering_right]
-		
+			img_folder_path = data_folder + '/IMG/'
+			# read in images from center, left and right cameras
+			img_center = img_folder_path + line[0].split('/')[-1] #cv2.imread(path + sample[0].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[0])))
+			img_left = img_folder_path + line[1].split('/')[-1] #cv2.imread(path + sample[1].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[1])))
+			img_right = img_folder_path + line[2].split('/')[-1] #cv2.imread(path + sample[2].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[2])))
+
+			# add images paths and angles to data set
+			images_paths += [img_center, img_left, img_right]
+			measurements += [steering_center, steering_left, steering_right]
+
 	return list(zip(images_paths, measurements))
 
 # Get samples
-lines = get_lines()
-samples = get_samples(lines)
+samples = get_samples(folder_path = '../data')
+print(samples[0])
 print('Total samples:', len(samples))
 
 # Split samples between train and val sets
@@ -58,7 +69,7 @@ def horizontal_flip(image, steering):
 	random_value = random.random() # random number in range [0.0,1.0)
 	if random_value < 0.5:
 		image = cv2.flip(image, 1) # or np.fliplr(image)
-		steering = -steering	
+		steering = -steering
 	return image, steering
 
 def preprocessing(image, steering):
@@ -96,7 +107,7 @@ validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
 
 
 from keras.models import Sequential, load_model
-from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D
+from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D, Dropout
 import matplotlib.pyplot as plt
 
 def model_preprocessing():
@@ -139,7 +150,7 @@ def Nvidia_model():
 	model.add(Dense(10))
 	model.add(Dense(1))
 	return model
-	
+
 def Nvidia_model_dropout():
 	model = model_preprocessing()
 	model.add(Convolution2D(24, 5, 5, subsample=(2,2), activation='relu'))
@@ -192,7 +203,7 @@ def show_history(history_object):
 	plt.legend(['training set', 'validation set'], loc='upper right')
 	plt.savefig('losses')
 	plt.show()
-	
+
 show_history(history_object)
 
 #~ model = load_model('model.h5')
@@ -202,7 +213,7 @@ def model_summary(model):
 		print(layer.get_weights())
 	print("model summary: \n{}\n".format(model.summary()))
 	print("model parameters: \n{}\n".format(model.count_params()))
-	
+
 model_summary(model)
 
 exit()
