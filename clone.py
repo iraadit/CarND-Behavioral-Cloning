@@ -52,7 +52,6 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 
 # Get samples
 samples = get_samples(folder_path = '../data')
-print(samples[0])
 print('Total samples:', len(samples))
 
 # Split samples between train and val sets
@@ -65,15 +64,25 @@ train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 import sklearn
 import random
 
+def random_brightness(image):
+    #Convert 2 HSV colorspace from RGB colorspace
+    hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
+    #Generate new random brightness
+    rand = random.uniform(0.5,1.0) # TODO !
+    hsv[:,:,2] = rand*hsv[:,:,2]
+    #Convert back to RGB colorspace
+    new_img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+    return new_img
+
 def horizontal_flip(image, steering):
-	random_value = random.random() # random number in range [0.0,1.0)
-	if random_value < 0.5:
-		image = cv2.flip(image, 1) # or np.fliplr(image)
-		steering = -steering
+	image = cv2.flip(image, 1) # or np.fliplr(image)
+	steering = -steering
 	return image, steering
 
 def preprocessing(image, steering):
-	image, steering = horizontal_flip(image, steering)
+	random_value = random.randint(0,1) # random value : 0 or 1
+	if random_value:
+		image, steering = horizontal_flip(image, steering)
 	return image, steering
 
 def generator(samples, training = False, batch_size=32):
@@ -113,6 +122,7 @@ import matplotlib.pyplot as plt
 def model_preprocessing():
 	model = Sequential()
 	model.add(Lambda(lambda x: (x / 255.0) - 0.5, input_shape=(160,320,3)))
+	# crop to take out sky and hood
 	model.add(Cropping2D(cropping=((TOP_CROP, BOT_CROP), (0,0))))
 	return model
 
@@ -162,9 +172,25 @@ def Nvidia_model_dropout():
 	model.add(Dense(100))
 	model.add(Dropout(0.5))
 	model.add(Dense(50))
-	model.add(Dropout(0.5))
+	#model.add(Dropout(0.5))
 	model.add(Dense(10))
-	model.add(Dropout(0.5))
+	#model.add(Dropout(0.5))
+	model.add(Dense(1))
+	return model
+
+def Commaai_model():
+	model = model_preprocessing()
+	model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode="same"))
+	model.add(ELU())
+	model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode="same"))
+	model.add(ELU())
+	model.add(Convolution2D(64, 5, 5, subsample=(2, 2), border_mode="same"))
+	model.add(Flatten())
+	model.add(Dropout(.2))
+	model.add(ELU())
+	model.add(Dense(512))
+	model.add(Dropout(.5))
+	model.add(ELU())
 	model.add(Dense(1))
 	return model
 
