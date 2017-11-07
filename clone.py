@@ -195,7 +195,7 @@ def Commaai_model():
 	return model
 
 # Compile the model
-model = Nvidia_model_dropout()
+model = Nvidia_model()
 model.compile(loss='mse', optimizer='adam')
 
 # Save visualization of the model
