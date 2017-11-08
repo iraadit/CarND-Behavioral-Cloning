@@ -2,6 +2,12 @@ import csv
 import cv2
 import numpy as np
 import os
+import random
+import sklearn
+from keras.models import Sequential, load_model
+from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D, Dropout
+import matplotlib.pyplot as plt
+from keras.utils.visualize_util import plot
 
 EPOCHS = 6
 STEERING_CORRECTION = 0.25
@@ -67,10 +73,6 @@ train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 
 
 
-
-import sklearn
-import random
-
 def random_brightness(image):
     # Convert to HSV colorspace from RGB colorspace
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
@@ -120,12 +122,6 @@ train_generator = generator(train_samples, training = True, batch_size=BATCH_SIZ
 validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
 
 
-
-
-
-from keras.models import Sequential, load_model
-from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D, Dropout
-import matplotlib.pyplot as plt
 
 def model_preprocessing():
 	model = Sequential()
@@ -207,7 +203,6 @@ model = Nvidia_model()
 model.compile(loss='mse', optimizer='adam')
 
 # Save visualization of the model
-from keras.utils.visualize_util import plot
 plot(model, to_file='model.jpg', show_shapes=True, show_layer_names=False)
 
 # Train the model using the generators
