@@ -60,10 +60,10 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 			# Randomly select one of the images (center, left or right) for each sample
 			steerings = [steering_center, steering_left, steering_right]
 			random_value = random.randint(0,2) # random value : 0, 1 or 2
-			image_path = img_folder_path + line[random_value].split('/')[-1]
-			#print(image_path)
-			images_paths.append(image_path)
 			measurements.append(steerings[random_value])
+			images_paths.append(image_path)
+			#print(image_path)
+			image_path = img_folder_path + line[random_value].split('/')[-1]
 
 	return list(zip(images_paths, measurements))
 
