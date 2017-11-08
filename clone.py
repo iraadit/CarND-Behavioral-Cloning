@@ -80,15 +80,15 @@ def random_brightness(image):
     new_img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
     return new_img
 
-def horizontal_flip(image, steering):
-	image = cv2.flip(image, 1) # or np.fliplr(image)
-	steering = -steering
+def random_horizontal_flip(image, steering):
+	random_value = random.randint(0,1) # random value : 0 or 1
+	if random_value:
+		image = cv2.flip(image, 1) # or np.fliplr(image)
+		steering = -steering
 	return image, steering
 
 def preprocessing(image, steering):
-	random_value = random.randint(0,1) # random value : 0 or 1
-	if random_value:
-		image, steering = horizontal_flip(image, steering)
+	image, steering = random_horizontal_flip(image, steering)
 	image = random_brightness(image)
 	return image, steering
 
