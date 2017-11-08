@@ -59,7 +59,7 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 			steerings = [steering_center, steering_left, steering_right]
 			random_value = random.randint(0,2) # random value : 0, 1 or 2
 			images_paths += img_folder_path + line[random_value].split('/')[-1]
-			measurements += steerings[random_value]
+			measurements.append(steerings[random_value])
 
 	return list(zip(images_paths, measurements))
 
