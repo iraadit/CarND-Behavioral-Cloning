@@ -71,6 +71,10 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 samples = get_samples(folder_path = DATA_PATH)
 print('Total samples:', len(samples))
 
+print(samples[0])
+image = cv2.imread(samples[0][0])
+cv2.imshow("result", image)
+
 # Split samples between train and val sets
 from sklearn.model_selection import train_test_split
 train_samples, validation_samples = train_test_split(samples, test_size=0.2)
