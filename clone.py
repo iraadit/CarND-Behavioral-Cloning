@@ -8,6 +8,7 @@ STEERING_CORRECTION = 0.25
 BATCH_SIZE = 64
 TOP_CROP = 70
 BOT_CROP = 25
+DATA_PATH = '../data'
 
 def get_lines(folder_path = '../data', skip=False):
 	lines = []
@@ -57,7 +58,7 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 	return list(zip(images_paths, measurements))
 
 # Get samples
-samples = get_samples(folder_path = '../data')
+samples = get_samples(folder_path = DATA_PATH)
 print('Total samples:', len(samples))
 
 # Split samples between train and val sets
