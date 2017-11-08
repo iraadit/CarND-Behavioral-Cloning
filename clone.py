@@ -71,12 +71,12 @@ import sklearn
 import random
 
 def random_brightness(image):
-    #Convert 2 HSV colorspace from RGB colorspace
+    # Convert to HSV colorspace from RGB colorspace
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-    #Generate new random brightness
+    # Generate new random brightness
     rand = random.uniform(0.5,1.0) # TODO !
     hsv[:,:,2] = rand*hsv[:,:,2]
-    #Convert back to RGB colorspace
+    # Convert back to RGB colorspace
     new_img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
     return new_img
 
@@ -89,6 +89,7 @@ def preprocessing(image, steering):
 	random_value = random.randint(0,1) # random value : 0 or 1
 	if random_value:
 		image, steering = horizontal_flip(image, steering)
+	image = random_brightness(image)
 	return image, steering
 
 def generator(samples, training = False, batch_size=32):
