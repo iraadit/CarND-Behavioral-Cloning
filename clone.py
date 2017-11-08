@@ -6,6 +6,8 @@ import random
 import sklearn
 from keras.models import Sequential, load_model
 from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D, Dropout
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from keras.utils.visualize_util import plot
 
