@@ -224,12 +224,12 @@ model.save('model.h5')
 
 def show_history(history_object):
 	### print the keys contained in the history object, as well as training loss and validation loss
-	print('History keys')
-	print(history_object.history.keys())
-	print('Training Loss')
-	print(history_object.history['loss'])
-	print('Validation Loss')
-	print(history_object.history['val_loss'])
+	# print('History keys')
+	# print(history_object.history.keys())
+	# print('Training Loss')
+	# print(history_object.history['loss'])
+	# print('Validation Loss')
+	# print(history_object.history['val_loss'])
 
 	### plot the training and validation loss for each epoch
 	plt.plot(history_object.history['loss'])
