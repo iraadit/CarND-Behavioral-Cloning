@@ -39,7 +39,7 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 	images_paths = []
 	measurements = []
 	for data_folder in data_folders:
-		lines = get_lines(folder_path = data_folder, skip=True)
+		lines = get_lines(folder_path = data_folder)
 		for line in lines:
 			steering_center = float(line[3])
 
