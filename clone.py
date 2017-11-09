@@ -16,7 +16,7 @@ STEERING_CORRECTION = 0.25
 BATCH_SIZE = 64
 TOP_CROP = 70
 BOT_CROP = 25
-DATA_PATH = '../data'
+DATA_PATH = '../data/data'
 
 def get_lines(folder_path = '../data', skip=False):
 	lines = []
@@ -28,7 +28,7 @@ def get_lines(folder_path = '../data', skip=False):
 			lines.append(line)
 	return lines
 
-def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, one = False):
+def get_samples(folder_path = '../data', correction = STEERING_CORRECTION, one = False):
 	data_folders = []
 	if one:
 		data_folders.append(folder_path)
@@ -68,7 +68,7 @@ def get_samples(folder_path = '../data/IMG', correction = STEERING_CORRECTION, o
 	return list(zip(images_paths, measurements))
 
 # Get samples
-samples = get_samples(folder_path = DATA_PATH)
+samples = get_samples(folder_path = DATA_PATH, one = True)
 print('Total samples:', len(samples))
 
 #print(samples[0])
