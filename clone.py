@@ -85,7 +85,7 @@ def random_brightness(image):
 	# Convert to HSV colorspace from RGB colorspace
 	hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
 	# Generate new random brightness
-	rand = 0.3 + random.uniform() #random.uniform(0.5,1.0) # TODO !
+	rand = 0.3 + np.random.uniform() #random.uniform(0.5,1.0) # TODO !
 	hsv[:,:,2] = rand*hsv[:,:,2]
 	# Convert back to RGB colorspace
 	new_img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
