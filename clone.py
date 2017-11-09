@@ -48,22 +48,22 @@ def get_samples(folder_path = '../data', correction = STEERING_CORRECTION, one =
 			steering_right = steering_center - correction
 
 			img_folder_path = data_folder + '/IMG/'
-			# read in images from center, left and right cameras
-			img_center = img_folder_path + line[0].split('/')[-1] #cv2.imread(path + sample[0].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[0])))
-			img_left = img_folder_path + line[1].split('/')[-1] #cv2.imread(path + sample[1].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[1])))
-			img_right = img_folder_path + line[2].split('/')[-1] #cv2.imread(path + sample[2].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[2])))
+			
+			# # read in images from center, left and right cameras
+			# img_center = img_folder_path + line[0].split('/')[-1] #cv2.imread(path + sample[0].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[0])))
+			# img_left = img_folder_path + line[1].split('/')[-1] #cv2.imread(path + sample[1].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[1])))
+			# img_right = img_folder_path + line[2].split('/')[-1] #cv2.imread(path + sample[2].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[2])))
+			# # add images paths and angles to data set
+			# images_paths += [img_center, img_left, img_right]
+			# measurements += [steering_center, steering_left, steering_right]
 
-			# add images paths and angles to data set
-			images_paths += [img_center, img_left, img_right]
-			measurements += [steering_center, steering_left, steering_right]
-
-			# # Randomly select one of the images (center, left or right) for each sample
-			# steerings = [steering_center, steering_left, steering_right]
-			# random_value = random.randint(0,2) # random value : 0, 1 or 2
-			# image_path = img_folder_path + line[random_value].split('/')[-1]
-			# #print(image_path)
-			# images_paths.append(image_path)
-			# measurements.append(steerings[random_value])
+			# Randomly select one of the images (center, left or right) for each sample
+			steerings = [steering_center, steering_left, steering_right]
+			random_value = random.randint(0,2) # random value : 0, 1 or 2
+			image_path = img_folder_path + line[random_value].split('/')[-1]
+			#print(image_path)
+			images_paths.append(image_path)
+			measurements.append(steerings[random_value])
 
 	return list(zip(images_paths, measurements))
 
