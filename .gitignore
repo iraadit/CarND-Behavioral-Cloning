@@ -6,3 +6,5 @@ backup/
 _mdwriter\.cson
 
 \.~lock\.Notes\.odt#
+
+\.DS_Store
