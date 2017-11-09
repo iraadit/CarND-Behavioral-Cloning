@@ -48,7 +48,7 @@ def get_samples(folder_path = '../data', correction = STEERING_CORRECTION, one =
 			steering_right = steering_center - correction
 
 			img_folder_path = data_folder + '/IMG/'
-			
+
 			# # read in images from center, left and right cameras
 			# img_center = img_folder_path + line[0].split('/')[-1] #cv2.imread(path + sample[0].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[0])))
 			# img_left = img_folder_path + line[1].split('/')[-1] #cv2.imread(path + sample[1].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[1])))
@@ -85,7 +85,7 @@ def random_brightness(image):
     # Convert to HSV colorspace from RGB colorspace
     hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
     # Generate new random brightness
-    rand = random.uniform(0.5,1.0) # TODO !
+    rand = 0.3 + random.uniform() #random.uniform(0.5,1.0) # TODO !
     hsv[:,:,2] = rand*hsv[:,:,2]
     # Convert back to RGB colorspace
     new_img = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
