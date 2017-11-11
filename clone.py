@@ -23,108 +23,24 @@ CSV_PATH = os.path.join(DATA_PATH, "driving_log.csv")
 
 np.random.seed(0)
 
-def get_lines(folder_path = '../data', skip=False):
-	lines = []
-	with open(folder_path + '/driving_log.csv') as csvfile:
-		reader = csv.reader(csvfile)
-		if skip:
-			next(reader, None)
-		for line in reader:
-			lines.append(line)
-	return lines
-
-def get_samples(folder_path = '../data', correction = STEERING_CORRECTION, one = False):
-	data_folders = []
-	if one:
-		data_folders.append(folder_path)
-	else:
-		folders = [x[0] for x in os.walk(folder_path)]
-		data_folders = list(filter(lambda folder: os.path.isfile(folder + '/driving_log.csv'), folders))
-
-	images_paths = []
-	measurements = []
-	for data_folder in data_folders:
-		lines = get_lines(folder_path = data_folder)
-		for line in lines:
-			steering_center = float(line[3])
-
-			# create adjusted steering measurements for the side camera images
-			steering_left = steering_center + correction
-			steering_right = steering_center - correction
-
-			img_folder_path = data_folder + '/IMG/'
-
-			# # read in images from center, left and right cameras
-			# img_center = img_folder_path + line[0].split('/')[-1] #cv2.imread(path + sample[0].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[0])))
-			# img_left = img_folder_path + line[1].split('/')[-1] #cv2.imread(path + sample[1].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[1])))
-			# img_right = img_folder_path + line[2].split('/')[-1] #cv2.imread(path + sample[2].split('/')[-1]) #process_image(np.asarray(Image.open(path + sample[2])))
-			# # add images paths and angles to data set
-			# images_paths += [img_center, img_left, img_right]
-			# measurements += [steering_center, steering_left, steering_right]
-
-			# Randomly select one of the images (center, left or right) for each sample
-			steerings = [steering_center, steering_left, steering_right]
-			random_value = random.randint(0,2) # random value : 0, 1 or 2
-			image_path = img_folder_path + line[random_value].split('/')[-1]
-			#print(image_path)
-			images_paths.append(image_path)
-			measurements.append(steerings[random_value])
-
-	return list(zip(images_paths, measurements))
-
-def load_data(csv_path):
-	"""
-	Load training data and split it into training and validation set
-	"""
-	samples_df = pd.read_csv(csv_path)
-
-	X = samples_df[['center', 'left', 'right']].values
-	y = samples_df['steering'].values
-
-	#samples = np.column_stack(X, y)
-	#print(samples)
-	#X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
-
-	#return X_train, X_valid, y_train, y_valid
-
-	return X, y
-
-X, y = load_data(CSV_PATH)
-
-# samples = pd.read_csv(CSV_PATH, index_col=None) #, as_recarray=True)
-# samples.columns = ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed']
-# #print(samples)
+# data_folders = []
+# if one:
+# 	data_folders.append(folder_path)
+# else:
+# 	folders = [x[0] for x in os.walk(folder_path)]
+# 	data_folders = list(filter(lambda folder: os.path.isfile(folder + '/driving_log.csv'), folders))
 
 # Get samples
-#samples = get_samples(folder_path = DATA_PATH, one = True)
+X, y = load_data(CSV_PATH)
 print('Total samples:', len(X))
-
 
 # Split samples between train and val sets
 from sklearn.model_selection import train_test_split
-#train_samples, validation_samples = train_test_split(samples, test_size=0.2)
 X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2)
 
-# training_count = int(0.8 * len(samples))
-# train_samples = samples[:training_count].reset_index(drop=True)
-# validation_samples = samples[training_count:].reset_index(drop=True)
-
-#print(train_samples)
-#print(validation_samples)
-# print('Train samples:', len(train_samples))
-# print('Valid samples:', len(validation_samples))
 print('Train samples:', len(X_train))
 print('Valid samples:', len(X_valid))
 
-# train_samples = train_samples.reset_index()
-# validation_samples = validation_samples.reset_index()
-
-# def random_drop_low_steering(samples):
-# 	index = samples[abs(samples['steering'])<.05].index.tolist()
-# 	rows = [i for i in index if np.random.randint(10) < 8]
-# 	samples = samples.drop(samples.index[rows])
-# 	print("Dropped %s samples with low steering"%(len(rows)))
-# 	return samples
 
 def random_drop_low_steering(X_train, y_train):
 	index = np.where(abs(y_train) < .05)[0]
@@ -137,7 +53,6 @@ def random_drop_low_steering(X_train, y_train):
 
 X_train, y_train = random_drop_low_steering(X_train, y_train)
 print('Train samples without low steering:', len(X_train))
-#print(train_samples)
 
 def random_brightness(image):
 	# Convert to HSV colorspace from RGB colorspace
@@ -221,15 +136,7 @@ def get_random_image_and_steering_angle(center, left, right, steering_angle, dat
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 	steering = steering_angle + shift_ang
 	return image, steering
-'''
-def get_center_image_and_steering_angle(data, index, data_path):
-	img_path = data['center'][index].strip()
-	abs_img_path = os.path.join(data_path, img_path)
-	image = cv2.imread(abs_img_path)
-	# TODO : convert to RGB or YUV
-	steering = float(data['steering'][index])
-	return image, steering
-'''
+
 def get_center_image_and_steering_angle(center, steering_angle, data_path):
 	img_path = center
 	abs_img_path = os.path.join(data_path, img_path)
@@ -237,55 +144,6 @@ def get_center_image_and_steering_angle(center, steering_angle, data_path):
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 	steering = steering_angle
 	return image, steering
-
-# def generator(samples, training = False, batch_size=32):
-# 	num_samples = len(samples)
-# 	while 1: # Loop forever so the generator never terminates
-# 		#samples = sklearn.utils.shuffle(samples)
-# 		samples = samples.sample(frac=1).reset_index(drop=True)
-# 		#print(samples)
-#
-# 		for offset in range(0, num_samples, batch_size):
-# 			batch_samples = samples[offset:offset+batch_size]
-# 			#batch_samples = samples.sample(n=batch_size)
-#
-# 			images = []
-# 			angles = []
-#
-# 			for i, index in enumerate(batch_samples.index.values):
-# 				if training:
-# 					image, steering = get_random_image_and_steering_angle(samples, index, DATA_PATH)
-# 					image, steering = preprocessing(image, steering)
-# 				else:
-# 					image, steering = get_center_image_and_steering_angle(samples, index, DATA_PATH)
-#
-# 				images.append(image)
-# 				angles.append(steering)
-#
-# 			X = np.array(images)
-# 			y = np.array(angles)
-# 			#yield sklearn.utils.shuffle(X, y)
-# 			yield X, y
-#
-# 		# for offset in range(0, num_samples, batch_size):
-# 		# 	#batch_samples = samples[offset:offset+batch_size]
-# 		#
-# 		# 	images = []
-# 		# 	angles = []
-# 		# 	for batch_sample in batch_samples:
-# 		# 		img_path = batch_sample['center'][value].strip()
-# 		# 		print(img_path)
-# 		# 		image = cv2.imread(img_path)
-# 		# 		print(batch_sample[3])
-# 		# 		steering = float(batch_sample[3])
-# 		# 		if training:
-# 		# 			image, steering = preprocessing(image, steering)
-# 		# 		images.append(image)
-# 		# 		angles.append(steering)
-# 		#
-# 		# 	X = np.array(images)
-# 		# 	y = np.array(angles)
-# 		# 	yield sklearn.utils.shuffle(X, y)
 
 def generator(images_paths, steering_angles, training = False, batch_size=32):
 	num_samples = len(images_paths)
@@ -313,33 +171,11 @@ def generator(images_paths, steering_angles, training = False, batch_size=32):
 
 			X = np.array(images)
 			y = np.array(angles)
-			#yield sklearn.utils.shuffle(X, y)
 			yield X, y
-
-		# for offset in range(0, num_samples, batch_size):
-		# 	#batch_samples = samples[offset:offset+batch_size]
-		#
-		# 	images = []
-		# 	angles = []
-		# 	for batch_sample in batch_samples:
-		# 		img_path = batch_sample['center'][value].strip()
-		# 		print(img_path)
-		# 		image = cv2.imread(img_path)
-		# 		print(batch_sample[3])
-		# 		steering = float(batch_sample[3])
-		# 		if training:
-		# 			image, steering = preprocessing(image, steering)
-		# 		images.append(image)
-		# 		angles.append(steering)
-		#
-		# 	X = np.array(images)
-		# 	y = np.array(angles)
-		# 	yield sklearn.utils.shuffle(X, y)
 
 # Create the generators
 train_generator = generator(X_train, y_train, training = True, batch_size=BATCH_SIZE)
 validation_generator = generator(X_valid, y_valid, training = False, batch_size=BATCH_SIZE)
-
 
 
 def model_preprocessing():
