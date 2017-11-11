@@ -6,17 +6,22 @@ import random
 import sklearn
 from keras.models import Sequential, load_model
 from keras.layers import Flatten, Dense, Lambda, Convolution2D, MaxPooling2D, Cropping2D, Dropout
-import matplotlib
-matplotlib.use('agg')
+#import matplotlib
+#matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from keras.utils.visualize_util import plot
+import pandas as pd
+from keras.callbacks import ModelCheckpoint
 
 EPOCHS = 6
 STEERING_CORRECTION = 0.25
 BATCH_SIZE = 64
 TOP_CROP = 70
 BOT_CROP = 25
-DATA_PATH = '../data/data'
+DATA_PATH = '/Users/iraadit/Datasets/Udacity/Behavorial Cloning/data' #'../data/data'
+CSV_PATH = os.path.join(DATA_PATH, "driving_log.csv")
+
+np.random.seed(0)
 
 def get_lines(folder_path = '../data', skip=False):
 	lines = []
@@ -67,19 +72,72 @@ def get_samples(folder_path = '../data', correction = STEERING_CORRECTION, one =
 
 	return list(zip(images_paths, measurements))
 
-# Get samples
-samples = get_samples(folder_path = DATA_PATH, one = True)
-print('Total samples:', len(samples))
+def load_data(csv_path):
+	"""
+	Load training data and split it into training and validation set
+	"""
+	samples_df = pd.read_csv(csv_path)
 
-#print(samples[0])
-#image = cv2.imread(samples[0][0])
-#cv2.imshow("result", image)
+	X = samples_df[['center', 'left', 'right']].values
+	y = samples_df['steering'].values
+
+	#samples = np.column_stack(X, y)
+	#print(samples)
+	#X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=args.test_size, random_state=0)
+
+	#return X_train, X_valid, y_train, y_valid
+
+	return X, y
+
+X, y = load_data(CSV_PATH)
+
+# samples = pd.read_csv(CSV_PATH, index_col=None) #, as_recarray=True)
+# samples.columns = ['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed']
+# #print(samples)
+
+# Get samples
+#samples = get_samples(folder_path = DATA_PATH, one = True)
+print('Total samples:', len(X))
+
 
 # Split samples between train and val sets
 from sklearn.model_selection import train_test_split
-train_samples, validation_samples = train_test_split(samples, test_size=0.2)
+#train_samples, validation_samples = train_test_split(samples, test_size=0.2)
+X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2)
 
+# training_count = int(0.8 * len(samples))
+# train_samples = samples[:training_count].reset_index(drop=True)
+# validation_samples = samples[training_count:].reset_index(drop=True)
 
+#print(train_samples)
+#print(validation_samples)
+# print('Train samples:', len(train_samples))
+# print('Valid samples:', len(validation_samples))
+print('Train samples:', len(X_train))
+print('Valid samples:', len(X_valid))
+
+# train_samples = train_samples.reset_index()
+# validation_samples = validation_samples.reset_index()
+
+# def random_drop_low_steering(samples):
+# 	index = samples[abs(samples['steering'])<.05].index.tolist()
+# 	rows = [i for i in index if np.random.randint(10) < 8]
+# 	samples = samples.drop(samples.index[rows])
+# 	print("Dropped %s samples with low steering"%(len(rows)))
+# 	return samples
+
+def random_drop_low_steering(X_train, y_train):
+	index = np.where(abs(y_train) < .05)[0]
+	rows = [i for i in index if np.random.randint(10) < 8]
+	X_train = np.delete(X_train, rows, axis=0)
+	y_train = np.delete(y_train, rows, axis=0)
+	print("Dropped %s samples with low steering"%(len(rows)))
+	# return samples
+	return X_train, y_train
+
+X_train, y_train = random_drop_low_steering(X_train, y_train)
+print('Train samples without low steering:', len(X_train))
+#print(train_samples)
 
 def random_brightness(image):
 	# Convert to HSV colorspace from RGB colorspace
@@ -120,37 +178,167 @@ def random_shadow(image):
 	image = cv2.cvtColor(image_hls,cv2.COLOR_HLS2RGB)
 	return image
 
+def convert_to_yuv(image):
+	return cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+
 def preprocessing(image, steering):
 	image, steering = random_horizontal_flip(image, steering)
 	image = random_brightness(image)
 	image = random_shadow(image)
+	image = convert_to_yuv(image) # TODO : TO LET OR NOT ?
+	return image, steering
+'''
+def get_random_image_and_steering_angle(data, index, data_path):
+	random = np.random.randint(4)
+	if (random == 0):
+		img_path = data['left'][index].strip()
+		shift_ang = .25
+	if (random == 1 or random == 2):
+		img_path = data['center'][index].strip()
+		shift_ang = 0.
+	if (random == 3):
+		img_path = data['right'][index].strip()
+		shift_ang = -.25
+	abs_img_path = os.path.join(data_path, img_path)
+	image = cv2.imread(abs_img_path)
+	# TODO : convert to RGB or YUV
+	steering = float(data['steering'][index]) + shift_ang
+	return image, steering
+'''
+def get_random_image_and_steering_angle(center, left, right, steering_angle, data_path):
+	random = np.random.randint(4)
+	if (random == 0):
+		img_path = left.strip()
+		shift_ang = .25
+	if (random == 1 or random == 2):
+		img_path = center.strip()
+		shift_ang = 0.
+	if (random == 3):
+		img_path = right.strip()
+		shift_ang = -.25
+	abs_img_path = os.path.join(data_path, img_path)
+	image = cv2.imread(abs_img_path)
+	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	steering = steering_angle + shift_ang
+	return image, steering
+'''
+def get_center_image_and_steering_angle(data, index, data_path):
+	img_path = data['center'][index].strip()
+	abs_img_path = os.path.join(data_path, img_path)
+	image = cv2.imread(abs_img_path)
+	# TODO : convert to RGB or YUV
+	steering = float(data['steering'][index])
+	return image, steering
+'''
+def get_center_image_and_steering_angle(center, steering_angle, data_path):
+	img_path = center
+	abs_img_path = os.path.join(data_path, img_path)
+	image = cv2.imread(abs_img_path)
+	image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+	steering = steering_angle
 	return image, steering
 
-def generator(samples, training = False, batch_size=32):
-	num_samples = len(samples)
+# def generator(samples, training = False, batch_size=32):
+# 	num_samples = len(samples)
+# 	while 1: # Loop forever so the generator never terminates
+# 		#samples = sklearn.utils.shuffle(samples)
+# 		samples = samples.sample(frac=1).reset_index(drop=True)
+# 		#print(samples)
+#
+# 		for offset in range(0, num_samples, batch_size):
+# 			batch_samples = samples[offset:offset+batch_size]
+# 			#batch_samples = samples.sample(n=batch_size)
+#
+# 			images = []
+# 			angles = []
+#
+# 			for i, index in enumerate(batch_samples.index.values):
+# 				if training:
+# 					image, steering = get_random_image_and_steering_angle(samples, index, DATA_PATH)
+# 					image, steering = preprocessing(image, steering)
+# 				else:
+# 					image, steering = get_center_image_and_steering_angle(samples, index, DATA_PATH)
+#
+# 				images.append(image)
+# 				angles.append(steering)
+#
+# 			X = np.array(images)
+# 			y = np.array(angles)
+# 			#yield sklearn.utils.shuffle(X, y)
+# 			yield X, y
+#
+# 		# for offset in range(0, num_samples, batch_size):
+# 		# 	#batch_samples = samples[offset:offset+batch_size]
+# 		#
+# 		# 	images = []
+# 		# 	angles = []
+# 		# 	for batch_sample in batch_samples:
+# 		# 		img_path = batch_sample['center'][value].strip()
+# 		# 		print(img_path)
+# 		# 		image = cv2.imread(img_path)
+# 		# 		print(batch_sample[3])
+# 		# 		steering = float(batch_sample[3])
+# 		# 		if training:
+# 		# 			image, steering = preprocessing(image, steering)
+# 		# 		images.append(image)
+# 		# 		angles.append(steering)
+# 		#
+# 		# 	X = np.array(images)
+# 		# 	y = np.array(angles)
+# 		# 	yield sklearn.utils.shuffle(X, y)
+
+def generator(images_paths, steering_angles, training = False, batch_size=32):
+	num_samples = len(images_paths)
 	while 1: # Loop forever so the generator never terminates
-		samples = sklearn.utils.shuffle(samples)
+		X, y = sklearn.utils.shuffle(images_paths, steering_angles)
+
 		for offset in range(0, num_samples, batch_size):
-			batch_samples = samples[offset:offset+batch_size]
+			batch_images_paths = images_paths[offset:offset+batch_size]
+			batch_steering_angles = steering_angles[offset:offset+batch_size]
 
 			images = []
 			angles = []
-			for batch_sample in batch_samples:
-				img_path = batch_sample[0]
-				image = cv2.imread(img_path)
-				steering = batch_sample[1]
+
+			for image_path_3, steering_angle in zip(batch_images_paths, batch_steering_angles):
+				center, left, right = image_path_3
+
 				if training:
+					image, steering = get_random_image_and_steering_angle(center, left, right, steering_angle, DATA_PATH)
 					image, steering = preprocessing(image, steering)
+				else:
+					image, steering = get_center_image_and_steering_angle(center, steering_angle, DATA_PATH)
+
 				images.append(image)
 				angles.append(steering)
 
 			X = np.array(images)
 			y = np.array(angles)
-			yield sklearn.utils.shuffle(X, y)
+			#yield sklearn.utils.shuffle(X, y)
+			yield X, y
+
+		# for offset in range(0, num_samples, batch_size):
+		# 	#batch_samples = samples[offset:offset+batch_size]
+		#
+		# 	images = []
+		# 	angles = []
+		# 	for batch_sample in batch_samples:
+		# 		img_path = batch_sample['center'][value].strip()
+		# 		print(img_path)
+		# 		image = cv2.imread(img_path)
+		# 		print(batch_sample[3])
+		# 		steering = float(batch_sample[3])
+		# 		if training:
+		# 			image, steering = preprocessing(image, steering)
+		# 		images.append(image)
+		# 		angles.append(steering)
+		#
+		# 	X = np.array(images)
+		# 	y = np.array(angles)
+		# 	yield sklearn.utils.shuffle(X, y)
 
 # Create the generators
-train_generator = generator(train_samples, training = True, batch_size=BATCH_SIZE)
-validation_generator = generator(validation_samples, batch_size=BATCH_SIZE)
+train_generator = generator(X_train, y_train, training = True, batch_size=BATCH_SIZE)
+validation_generator = generator(X_valid, y_valid, training = False, batch_size=BATCH_SIZE)
 
 
 
@@ -233,13 +421,19 @@ def Commaai_model():
 model = Nvidia_model()
 model.compile(loss='mse', optimizer='adam')
 
+checkpoint = ModelCheckpoint('model-{epoch:03d}.h5',
+								 monitor='val_loss',
+								 verbose=0,
+								 save_best_only=False,
+								 mode='auto')
+
 # Save visualization of the model
 plot(model, to_file='model.jpg', show_shapes=True, show_layer_names=False)
 
 # Train the model using the generators
-history_object = model.fit_generator(train_generator, samples_per_epoch = len(train_samples), \
-								validation_data = validation_generator, nb_val_samples = len(validation_samples), \
-								nb_epoch = EPOCHS, verbose=1)
+history_object = model.fit_generator(train_generator, samples_per_epoch = len(X_train), \
+								validation_data = validation_generator, nb_val_samples = len(X_valid), \
+								nb_epoch = EPOCHS, verbose=1, callbacks=[checkpoint])
 
 # Save the model
 model.save('model.h5')
@@ -247,12 +441,12 @@ model.save('model.h5')
 
 def show_history(history_object):
 	### print the keys contained in the history object, as well as training loss and validation loss
-	# print('History keys')
-	# print(history_object.history.keys())
-	# print('Training Loss')
-	# print(history_object.history['loss'])
-	# print('Validation Loss')
-	# print(history_object.history['val_loss'])
+	print('History keys')
+	print(history_object.history.keys())
+	print('Training Loss')
+	print(history_object.history['loss'])
+	print('Validation Loss')
+	print(history_object.history['val_loss'])
 
 	### plot the training and validation loss for each epoch
 	plt.plot(history_object.history['loss'])
@@ -269,8 +463,8 @@ show_history(history_object)
 #~ model = load_model('model.h5')
 
 def model_summary(model):
-	for layer in model.layers:
-		print(layer.get_weights())
+	# for layer in model.layers:
+	# 	print(layer.get_weights())
 	print("model summary: \n{}\n".format(model.summary()))
 	print("model parameters: \n{}\n".format(model.count_params()))
 
