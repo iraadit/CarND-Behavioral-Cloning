@@ -30,6 +30,17 @@ np.random.seed(0)
 # 	folders = [x[0] for x in os.walk(folder_path)]
 # 	data_folders = list(filter(lambda folder: os.path.isfile(folder + '/driving_log.csv'), folders))
 
+def load_data(csv_path):
+	"""
+	Load training data
+	"""
+	samples_df = pd.read_csv(csv_path)
+
+	X = samples_df[['center', 'left', 'right']].values
+	y = samples_df['steering'].values
+
+	return X, y
+
 # Get samples
 X, y = load_data(CSV_PATH)
 print('Total samples:', len(X))
