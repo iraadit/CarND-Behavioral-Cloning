@@ -105,32 +105,14 @@ def random_shadow(image):
 	return image
 
 def convert_to_yuv(image):
-	return cv2.cvtColor(image, cv2.COLOR_BGR2YUV)
+	return cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
 
 def preprocessing(image, steering):
 	image, steering = random_horizontal_flip(image, steering)
 	image = random_brightness(image)
 	image = random_shadow(image)
-	image = convert_to_yuv(image) # TODO : TO LET OR NOT ?
 	return image, steering
-'''
-def get_random_image_and_steering_angle(data, index, data_path):
-	random = np.random.randint(4)
-	if (random == 0):
-		img_path = data['left'][index].strip()
-		shift_ang = .25
-	if (random == 1 or random == 2):
-		img_path = data['center'][index].strip()
-		shift_ang = 0.
-	if (random == 3):
-		img_path = data['right'][index].strip()
-		shift_ang = -.25
-	abs_img_path = os.path.join(data_path, img_path)
-	image = cv2.imread(abs_img_path)
-	# TODO : convert to RGB or YUV
-	steering = float(data['steering'][index]) + shift_ang
-	return image, steering
-'''
+
 def get_random_image_and_steering_angle(center, left, right, steering_angle, data_path):
 	random = np.random.randint(4)
 	if (random == 0):
@@ -176,6 +158,8 @@ def generator(images_paths, steering_angles, training = False, batch_size=32):
 					image, steering = preprocessing(image, steering)
 				else:
 					image, steering = get_center_image_and_steering_angle(center, steering_angle, DATA_PATH)
+
+				image = convert_to_yuv(image)
 
 				images.append(image)
 				angles.append(steering)
