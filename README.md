@@ -1,6 +1,6 @@
-#**Behavioral Cloning** 
+# **Behavioral Cloning** 
 
-##Writeup
+## Writeup
 
 ---
 
@@ -18,9 +18,9 @@ The goals / steps of this project are the following:
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
 
 ---
-###Files Submitted & Code Quality
+### Files Submitted & Code Quality
 
-####1. Submission includes all required files and can be used to run the simulator in autonomous mode
+#### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
 * model.py containing the script to create and train the model
@@ -29,19 +29,19 @@ My project includes the following files:
 * writeup_report.md summarizing the results
 * video.mp4 showing the vehicle driving autonomously around the first track for one full lap
 
-####2. Submission includes functional code
+#### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track one by executing 
 ```sh
 python drive.py model.h5
 ```
 
-####3. Submission code is usable and readable
+#### 3. Submission code is usable and readable
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. An appropriate model architecture has been employed
+#### 1. An appropriate model architecture has been employed
 
 My model consists of a convolution neural network with 5x5 and 3x3 filter sizes and depths between 24 and 64. It is the model name _Nvidia_model_ in the __model.py__ file.
 
@@ -77,21 +77,21 @@ def model_preprocessing():
 	return model
 ```
 
-####2. Attempts to reduce overfitting in the model
+#### 2. Attempts to reduce overfitting in the model
 
 Some attempts have been made to add Dropout in my model, but with bad results. As I was able to have good results by training my model without using Dropout, I finally didn't use them. The Data Selection (explained below) and the Image Augmentation (explained below) helped the model not to overfit by themselves.
 
 The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
-####3. Model parameter tuning
+#### 3. Model parameter tuning
 
 The model used an adam optimizer, so it wasn't necessary to manually tune the learning rate (__model.py__ line 356).
 
-####4. Loss function
+#### 4. Loss function
 
 I used mean squared error for the loss function to measure how close the model predicts to the given steering angle for each image (__model.py__ line 356).
 
-####5. Appropriate training data
+#### 5. Appropriate training data
 
 Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, and recovering from the left and right sides of the road simulated thanks to the left and right camera and corresponding appropriated factor added to the steering angle.
 
@@ -99,9 +99,9 @@ I only used the training data provided by Udacity.
 
 For details about how I created the training data, see the next section. 
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. Solution Design Approach
+#### 1. Solution Design Approach
 
 The overall strategy for deriving a model architecture was to try known architectures.
 
@@ -119,7 +119,7 @@ The final step was to run the simulator to see how well the car was driving arou
 
 At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
 
-####2. Final Model Architecture
+#### 2. Final Model Architecture
 
 The final model architecture is present in __model.py__ at lines 248-260).
 
@@ -127,7 +127,7 @@ Here is a visualization of the architecture used, it consistes of a convolution 
 
 ![Center image](./images/model.jpg)
 
-####3. Creation of the Training Set & Training Process
+#### 3. Creation of the Training Set & Training Process
 
 ##### Training images
 
@@ -208,7 +208,7 @@ I then preprocessed this data (as well as validation and inference data) by :
 
 The normalizing and cropping operations are inserted in the Keras model, so that it isn't needed to edit the drive.py file to add these operations (but it is needed for the YUV conversion).
 
-#####Training
+##### Training
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was 5 as evidenced by the plot of the losses. (As I saved checkpoints for each of the epoch, I was able to use the model corresponding to the fifth epoch, even if I trained for 6 epochs)
 
